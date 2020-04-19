@@ -1,3 +1,9 @@
+// 阻止微信浏览器默认向下滚动：
+// 同时惊喜的我发现也可以解决QQ浏览器页面滑动问题：
+document.body.addEventListener('touchmove', function (e) {
+    e.preventDefault();
+}, {passive: false});
+
 let canvas = document.getElementById("drawing-board");
 let ctx = canvas.getContext("2d");
 let eraser = document.getElementById("eraser");

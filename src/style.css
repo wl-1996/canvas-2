@@ -7,6 +7,7 @@
 body {
     /*去掉滚动条*/
     overflow: hidden;
+    font-family: -apple-system, "Noto Sans", "Helvetica Neue", Helvetica, "Nimbus Sans L", Arial, "Liberation Sans", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Source Han Sans SC", "Source Han Sans CN", "Microsoft YaHei", "Wenquanyi Micro Hei", "WenQuanYi Zen Hei", "ST Heiti", SimHei, "WenQuanYi Zen Hei Sharp", sans-serif;
 }
 
 #drawing-board {
@@ -109,6 +110,28 @@ body {
     border-radius: 15px;
     z-index: 0;
 }
+
+/*#range-wrap input[type=range]::-webkit-slider-thumb, #range-wrap input[type=range]::-moz-range-thumb {*/
+/*    -webkit-appearance: none;*/
+/*}*/
+
+/*#range-wrap input[type=range]::-webkit-slider-runnable-track, #range-wrap input[type=range]::-moz-range-track {*/
+/*    height: 10px;*/
+/*    border-radius: 10px;*/
+/*    box-shadow: none;*/
+/*}*/
+
+/*#range-wrap input[type=range]::-webkit-slider-thumb {*/
+/*    -webkit-appearance: none;*/
+/*    height: 20px;*/
+/*    width: 20px;*/
+/*    margin-top: -1px;*/
+/*    background: #ffffff;*/
+/*    border-radius: 50%;*/
+/*    box-shadow: 0 0 8px #00CCFF;*/
+/*    position: relative;*/
+/*    z-index: 999;*/
+/*}*/
 
 @media (max-width: 768px) {
     .tools {
