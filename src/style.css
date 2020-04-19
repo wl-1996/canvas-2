@@ -37,7 +37,7 @@ body {
     cursor: pointer;
     margin: 0 10px;
     text-align: center;
-    color: #ccc;
+    color: black;
     line-height: 50px;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
     transition: 0.3s;
@@ -45,7 +45,7 @@ body {
 
 .tools button.active, .tools button:active {
     box-shadow: 0 0 15px #00CCFF;
-    color: #00CCFF;
+    color: red;
 }
 
 .color-group {
