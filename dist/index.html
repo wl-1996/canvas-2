@@ -7,6 +7,13 @@
     <title>canvas画板</title>
     <script src="//at.alicdn.com/t/font_1774212_to6qtp9ai8r.js"></script>
     <link rel="stylesheet" href="style.4650aaa3.css">
+    <script>// 阻止微信浏览器默认向下滚动：
+// 同时惊喜的我发现也可以解决QQ浏览器页面滑动问题：
+document.body.addEventListener('touchmove', function (e) {
+  e.preventDefault();
+}, {
+  passive: false
+});</script>
 </head>
 <body>
 <!--画板元素-->
