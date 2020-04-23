@@ -1,198 +1,98 @@
-// 阻止微信浏览器默认向下滚动：
-// 同时惊喜的我发现也可以解决QQ浏览器页面滑动问题：
-document.body.addEventListener('touchmove', function (e) {
-    e.preventDefault();
-}, {passive: false});
+//获取canvas元素：
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
+//功能按钮：
+let brush = document.getElementById('brush');
+let eraser = document.getElementById('eraser');
+let undo = document.getElementById('undo');
+let reSetCanvas = document.getElementById('clear');
+let save = document.getElementById('save');
+//画笔颜色选择按钮：
+let colorBtn = document.getElementsByClassName('color-item');
+//画笔粗细拖拽按钮：
+let range = document.getElementById('range');
 
-let canvas = document.getElementById("drawing-board");
-let ctx = canvas.getContext("2d");
-let eraser = document.getElementById("eraser");
-let brush = document.getElementById("brush");
-let reSetCanvas = document.getElementById("clear");
-let aColorBtn = document.getElementsByClassName("color-item");
-let save = document.getElementById("save");
-let undo = document.getElementById("undo");
-let range = document.getElementById("range");
-
-//信号量，是否要清空
+//设置信号量：
+//默认非橡皮擦状态
 let clear = false;
-//默认画笔颜色：
-let activeColor = 'black';
-//默认画笔线条宽度是4
+//画笔默认宽度为4
 let lWidth = 4;
 
-//设置画板尺寸
+//设置画布尺寸
 autoSetSize(canvas);
-
-//设置画板背景颜色
+//我感觉多次一举，画板默认就是白色啊，只需要给一个默认画笔填充颜色就可以了啊
 setCanvasBg('white');
+//设置画笔默认样式：
+ctx.fillStyle = 'black';
+ctx.strokeStyle = 'black';
 
+//监听用户操作
 listenToUser(canvas);
-
-//获取默认颜色：
+//根据颜色按钮获取画笔颜色
 getColor();
 
-//在刷新页面前弹出确认框
-window.onbeforeunload = function () {
-    return "Reload site?";
+//窗口被关闭/刷新时，触发该事件：
+window.onbeforeunload = () => {
+    return 'Reload site?';
 };
 
-//定义设置画板尺寸函数
+//定义设置画布尺寸函数
 function autoSetSize(canvas) {
-    canvasSetSize();
-
-    //定义设置画板尺寸函数核心代码：
+    //定义设置画布尺寸函数
     function canvasSetSize() {
-        let pageWidth = document.documentElement.clientWidth;
-        let pageHeight = document.documentElement.clientHeight;
-        console.log(pageWidth, pageHeight);
-
-        canvas.width = pageWidth;
-        canvas.height = pageHeight;
+        let clientWidth = document.documentElement.clientWidth;
+        let clientHeight = document.documentElement.clientHeight;
+        canvas.width = clientWidth;
+        canvas.height = clientHeight;
     }
 
-    //当window视口改变尺寸时调用设置画板尺寸函数
-    window.onresize = function () {
+    canvasSetSize();
+    //视口变化时画布尺寸重新设置：
+    window.onresize = () => {
         canvasSetSize();
     };
 }
 
-//定义设置画板背景颜色函数：
+//设置画板背景函数：
 function setCanvasBg(color) {
+    //设置填充颜色
     ctx.fillStyle = color;
-    console.log(color);
-    //画一个矩形区域，这个矩形区域覆盖画板区域
+    //绘制一个填充矩形：
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    //what?怎么重复了
-    ctx.fillStyle = 'black';
 }
 
-function listenToUser(canvas) {
-    //设置默认不是绘画状态：
-    let painting = false;
-    //设置一个坐标
-    let lastPoint = {x: undefined, y: undefined};
-
-    //通过触摸API判断是否是手机设备
-    //手机设备监听的是触摸开始，触摸移动，触摸结束事件：
-    if (document.body.ontouchstart !== undefined) {
-        //监听触摸开始事件：
-        canvas.ontouchstart = function (e) {
-            //在这里储存绘图表面
-            // this.firstDot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            //调用saveData函数保存这个记录
-            // saveData(this.firstDot);
-            //触摸开始了，设置绘画状态为true：
-            painting = true;
-            //获取触摸的坐标：
-            let x = e.touches[0].clientX;
-            let y = e.touches[0].clientY;
-            //将此时触摸坐标作为最后一次坐标
-            lastPoint = {"x": x, "y": y};
-            //？
-            ctx.save();
-            //调用画圆函数画一个圆点,半径为0
-            drawCircle(x, y, 0);
-        };
-        //监听手机端手指滑动事件：
-        canvas.ontouchmove = function (e) {
-            //先判断绘画状态是否为true，为true时才能进行绘画：
-            if (painting) {
-                //获取移动后的坐标：
-                let x = e.touches[0].clientX;
-                let y = e.touches[0].clientY;
-                let newPoint = {"x": x, "y": y};
-                //调用画线函数画一条线将这两个点连接起来：
-                drawLine(lastPoint.x, lastPoint.y, newPoint.x, newPoint.y);
-                //然后更新最后一个点：
-                lastPoint = newPoint;
-            }
-        };
-
-        //监听触摸结束事件：
-        canvas.ontouchend = function () {
-            //触摸结束了，将绘画状态设为false：
-            painting = false;
-        };
-    }
-        //否则就是PC设备
-    //PC设备监听的是鼠标按下，鼠标移动，鼠标抬起事件：
-    else {
-        //监听鼠标按下事件：
-        canvas.onmousedown = function (e) {
-            //在这里储存绘图表面
-            // this.firstDot = ctx.getImageData(0, 0, canvas.width, canvas.height);//在这里储存绘图表面
-            // saveData(this.firstDot);
-            //鼠标按下就将绘画状态设为true：
-            painting = true;
-            //获取按下坐标：
-            let x = e.clientX;
-            let y = e.clientY;
-            lastPoint = {"x": x, "y": y};
-            //？
-            ctx.save();
-            //以这个坐标为圆心画一个圆：
-            drawCircle(x, y, 0, clear);
-        };
-        //监听鼠标移动事件：
-        canvas.onmousemove = function (e) {
-            //判断绘画状态是否为true，为true时才可以移动过程中继续画线
-            if (painting) {
-                //获取坐标：
-                let x = e.clientX;
-                let y = e.clientY;
-                let newPoint = {"x": x, "y": y};
-                //调用画线函数：
-                //但是不知道clear参数是干什么的？
-                drawLine(lastPoint.x, lastPoint.y, newPoint.x, newPoint.y, clear);
-                //画完线后更新最后一个点的坐标
-                lastPoint = newPoint;
-            }
-        };
-
-        //监听鼠标抬起事件，将绘画状态设为false：
-        canvas.onmouseup = function () {
-            painting = false;
-        };
-
-        //比手机端多监听一个鼠标离开事件：
-        //鼠标离开时将绘画状态设为false：
-        //否则的话鼠标离开后抬起再进入还是会画线：
-        canvas.mouseleave = function () {
-            painting = false;
-        };
-    }
-}
-
-//画圆函数：
-//给圆心坐标和半径就能得到一个圆：
-function drawCircle(x, y, radius) {
+//定义画点函数：
+function drawPoint(x, y) {
+    //what?
     ctx.save();
-    ctx.beginPath();
-    console.log(radius);
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fill();
-    //如果clear为true：
+    //如果此时是橡皮擦状态：
     if (clear) {
         //what?
         ctx.clip();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
+    } else {
+        //画点（逻辑就是画一个圆，填充这个圆）
+        ctx.beginPath();
+        ctx.arc(x, y, 1, 0, Math.PI * 2);
+        ctx.fill();
+        console.log("画点成功");
     }
 }
 
-//画线函数，给两组坐标返回一条线：
+//定义画线函数：
 function drawLine(x1, y1, x2, y2) {
-    //设置线的宽度：
+    //样式初始化
     ctx.lineWidth = lWidth;
-    //what?
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    //如果clear这个信号量为true：
+    //lineCap和lineJoin作用是画线时无缝隙，使其顺滑
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    //如果现在是橡皮擦状态：
     if (clear) {
-        //？
+        //what?
         ctx.save();
-        ctx.globalCompositeOperation = "destination-out";
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
@@ -201,81 +101,167 @@ function drawLine(x1, y1, x2, y2) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
     } else {
-        //？
+        ctx.beginPath();
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
-        ctx.closePath();
     }
 }
 
-//监听range的change事件，一旦改变了，就将rang的值设为线的宽度：
-range.onchange = function () {
-    //这里的this就是这个range元素：
-    lWidth = this.value;
-};
-
-//监听橡皮擦按钮点击事件：
-eraser.onclick = function () {
-    //说明此时要清除内容了：
-    clear = true;
-    this.classList.add("active");
-    brush.classList.remove("active");
-};
-
-//监听画笔按钮点击事件：
-brush.onclick = function () {
-    //说明此时要画画，不是要清除内容：
-    clear = false;
-    this.classList.add("active");
-    eraser.classList.remove("active");
-};
-
-//监听清空按钮点击事件
-reSetCanvas.onclick = function () {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setCanvasBg('white');
-};
-
-//监听保存按钮点击事件，点击保存时生成img图片保存到本机：
-save.onclick = function () {
-    let imgUrl = canvas.toDataURL("image/png");
-    let saveA = document.createElement("a");
-    document.body.appendChild(saveA);
-    saveA.href = imgUrl;
-    saveA.download = "zspic" + (new Date).getTime();
-    saveA.target = "_blank";
-    saveA.click();
-};
-
-//定义获取颜色函数：
-function getColor() {
-    for (let i = 0; i < aColorBtn.length; i++) {
-        aColorBtn[i].onclick = function () {
-            for (let i = 0; i < aColorBtn.length; i++) {
-                //去掉所有颜色按钮的active类：
-                aColorBtn[i].classList.remove("active");
-                //给被点击的这个按钮加上颜色类
-                this.classList.add("active");
-                activeColor = this.style.backgroundColor;
-                ctx.fillStyle = activeColor;
-                ctx.strokeStyle = activeColor;
+function listenToUser(canvas) {
+    //设置信号量
+    //当前绘制状态信号量
+    let painting = false;
+    //最后坐标信号量：
+    let lastPoint = {x: undefined, y: undefined};
+    //判断是否是手机设备（通过触摸API判断）
+    if (document.body.ontouchstart !== undefined) {
+        //触摸开始时画一个点
+        canvas.ontouchstart = function (e) {
+            //ctx.getImageData返回一个ImageData对象，用来描述canvas区域隐含的像素数据，
+            //这个区域通过矩形表示，起始点为(sx, sy)、宽为sw、高为sh。
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            saveData(imageData);
+            painting = true;
+            let x = e.touches[0].clientX;
+            let y = e.touches[0].clientY;
+            lastPoint = {x: x, y: y};
+            // 通过将当前状态放入栈中，保存 canvas 全部状态的方法。
+            ctx.save();
+            //调用画点函数：
+            drawPoint(x, y);
+        };
+        // 触摸移动时画线
+        canvas.ontouchmove = function (e) {
+            if (painting) {
+                let x = e.touches[0].clientX;
+                let y = e.touches[0].clientY;
+                let newPoint = {x: x, y: y};
+                //调用画线函数：
+                drawLine(lastPoint.x, lastPoint.y, newPoint.x, newPoint.y);
+                //更新信号量：
+                lastPoint = newPoint;
             }
+        };
+        // 触摸结束时重置绘画状态信号量：
+        canvas.ontouchend = function () {
+            painting = false;
+        };
+    } else {
+        //鼠标按下时画一个点
+        canvas.onmousedown = function (e) {
+            //ctx.getImageData返回一个ImageData对象，用来描述canvas区域隐含的像素数据，
+            //这个区域通过矩形表示，起始点为(sx, sy)、宽为sw、高为sh。
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            saveData(imageData);
+            painting = true;
+            let x = e.clientX;
+            let y = e.clientY;
+            lastPoint = {x: x, y: y};
+            // 通过将当前状态放入栈中，保存 canvas 全部状态的方法。
+            ctx.save();
+            //调用画点函数：
+            drawPoint(x, y);
+        };
+        // 鼠标按下移动时画线
+        canvas.onmousemove = function (e) {
+            // 判断信号量是否为true,为true时才能画线
+            if (painting) {
+                let x = e.clientX;
+                let y = e.clientY;
+                let newPoint = {x: x, y: y};
+                //调用画线函数：
+                drawLine(lastPoint.x, lastPoint.y, newPoint.x, newPoint.y);
+                //更新信号量：
+                lastPoint = newPoint;
+            }
+        };
+        // 鼠标抬起时重置绘画状态信号量：
+        canvas.onmouseup = function () {
+            painting = false;
         };
     }
 }
 
-let historyDeta = [];
+//监听画笔宽度拖动按钮的变化事件：
+//当按钮值变化时，更新画笔的粗细
+range.onchange = function () {
+    lWidth = this.value;
+    console.log(lWidth);
+};
 
-//声明一个保存历史记录的函数：
-// function saveData(data) {
-//     (historyDeta.length === 10) && (historyDeta.shift());// 上限为储存10步，太多了怕挂掉
-//     historyDeta.push(data);
-// }
+//橡皮擦按钮点击事件：
+eraser.onclick = function () {
+    this.classList.add('active');
+    brush.classList.remove('active');
+    clear = true;
+};
 
-//监听撤销按钮点击事件：
-// undo.onclick = function () {
-//     if (historyDeta.length < 1) return false;
-//     ctx.putImageData(historyDeta[historyDeta.length - 1], 0, 0);
-//     historyDeta.pop();
-// };
+//监听画笔点击事件
+brush.onclick = function () {
+    this.classList.add('active');
+    eraser.classList.remove('active');
+    clear = false;
+};
+
+//清空按钮点击事件
+reSetCanvas.onclick = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+};
+
+//根据颜色按钮选中状态设置填充颜色和轮廓颜色：
+function getColor() {
+    //遍历colorBtn按钮，给所有按钮添加点击事件：
+    for (let i = 0; i < colorBtn.length; i++) {
+        colorBtn[i].onclick = function () {
+            //先去掉所有的按钮的类：active
+            //原生js无兄弟节点的API，所以只能再次遍历：
+            for (let j = 0; j < colorBtn.length; j++) {
+                colorBtn[j].classList.remove('active');
+            }
+            //给被点击的颜色按钮加上类active：
+            this.classList.add('active');
+            ctx.fillStyle = this.style.backgroundColor;
+            ctx.strokeStyle = this.style.backgroundColor;
+        };
+    }
+}
+
+let history = [];//该数组存放历史记录
+//保存历史记录函数：
+function saveData(imageData) {
+    //如果历史记录已经有10条了，就删除第一条再进行存储
+    //这是为了防止卡顿，如果保存太多会卡
+    (history.length === 10) && (history.shift());
+    history.push(imageData);
+}
+
+undo.onclick = function () {
+    console.log(history);
+    if (history.length === 0) {
+        window.alert('您已经撤销到尽头，无法继续撤销');
+        return;
+    }
+    let imageData = history[history.length - 1];
+    // ctx.putImageData将数据从已有的 ImageData 对象绘制到位图的方法。
+    //就是说将上次保存的ImageData对象渲染到画布上
+    ctx.putImageData(imageData, 0, 0);
+    history.pop();
+};
+
+//保存按钮监听，点击后保存图片，这个很有用啊
+save.onclick = function () {
+    // getDataURL方法返回一个包含图片展示的 data URI
+    //就是将当前画板的内容变为一个url
+    let imgUrl = canvas.toDataURL("image/png");
+    let a = document.createElement("a");
+    document.body.appendChild(a);
+    a.href = imgUrl;
+    // 此属性指示浏览器下载 URL 而不是导航到它，
+    // 因此将提示用户将其保存为本地文件。如果属性有一个值，那么此值将在下载保存过程中作为预填充的文件名
+    a.download = "wangkuo" + (new Date).getTime();
+    a.target = "_blank";
+    // click 方法可以用来模拟鼠标左键单击一个元素。
+    a.click();
+};
+

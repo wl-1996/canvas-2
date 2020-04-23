@@ -1,52 +1,60 @@
+.icon {
+    width: 2em;
+    height: 2em;
+    vertical-align: -0.15em;
+    fill: currentColor;
+    overflow: hidden;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    /*todo*/
+    user-select: none;
 }
 
 body {
-    /*去掉滚动条*/
     overflow: hidden;
-    font-family: -apple-system, "Noto Sans", "Helvetica Neue", Helvetica, "Nimbus Sans L", Arial, "Liberation Sans", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Source Han Sans SC", "Source Han Sans CN", "Microsoft YaHei", "Wenquanyi Micro Hei", "WenQuanYi Zen Hei", "ST Heiti", SimHei, "WenQuanYi Zen Hei Sharp", sans-serif;
 }
 
-#drawing-board {
+ul, li {
+    list-style: none;
+}
+
+#canvas {
     background: white;
     position: fixed;
     display: block;
-    /*把鼠标指针换为十字架*/
+    /*悬浮时显示十字架*/
     cursor: crosshair;
 }
 
 .tools {
     position: fixed;
+    width: 100%;
     left: 0;
     bottom: 30px;
-    width: 100%;
     display: flex;
     justify-content: center;
     text-align: center;
 }
 
 .tools button {
+    border: none;
     border-radius: 50%;
     width: 50px;
     height: 50px;
     background-color: rgba(255, 255, 255, 0.7);
-    border: 1px solid #eee;
     outline: none;
     cursor: pointer;
     margin: 0 10px;
-    text-align: center;
-    color: black;
-    line-height: 50px;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
     transition: 0.3s;
 }
 
-.tools button.active, .tools button:active {
-    box-shadow: 0 0 15px #00CCFF;
-    color: red;
+.tools button.active {
+    box-shadow: 0 0 15px black;
 }
 
 .color-group {
@@ -57,23 +65,19 @@ body {
     transform: translateY(-50%);
 }
 
-.color-group ul {
-    list-style: none;
-}
-
 .color-group ul li {
     width: 30px;
     height: 30px;
+    border: 3px solid white;
     margin: 10px 0;
     border-radius: 50%;
-    border: 3px solid white;
-    cursor: pointer;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
     transition: 0.3s;
 }
 
 .color-group ul li.active {
-    box-shadow: 0 0 15px #00ccff;
+    box-shadow: 0 0 15px blue;
 }
 
 #range-wrap {
@@ -87,15 +91,20 @@ body {
 
 #range-wrap input {
     transform: rotate(-90deg);
+    transform-origin: 75px 75px;
     width: 150px;
     height: 20px;
     margin: 0;
-    transform-origin: 75px 75px;
     border-radius: 15px;
+    /*设置拖动按钮样式*/
+    /*不应用任何特殊样式*/
+    /*mdn说这是一个开发中的功能，慎用*/
+    -webkit-appearance: none;
     outline: none;
     position: relative;
 }
 
+/*设置拖动按钮长条的样式，有点难懂*/
 #range-wrap input::after {
     display: block;
     content: '';
@@ -111,29 +120,33 @@ body {
     z-index: 0;
 }
 
-/*#range-wrap input[type=range]::-webkit-slider-thumb, #range-wrap input[type=range]::-moz-range-thumb {*/
-/*    -webkit-appearance: none;*/
-/*}*/
+/*下边这三个选择器作用是修改拖动按钮的样式，有点难懂*/
+#range-wrap input[type=range]::-webkit-slider-thumb, #range-wrap input[type=range]::-moz-range-thumb {
+    -webkit-appearance: none;
+}
 
-/*#range-wrap input[type=range]::-webkit-slider-runnable-track, #range-wrap input[type=range]::-moz-range-track {*/
-/*    height: 10px;*/
-/*    border-radius: 10px;*/
-/*    box-shadow: none;*/
-/*}*/
+#range-wrap input[type=range]::-webkit-slider-runnable-track, #range-wrap input[type=range]::-moz-range-track {
+    height: 10px;
+    border-radius: 10px;
+    box-shadow: none;
+}
 
-/*#range-wrap input[type=range]::-webkit-slider-thumb {*/
-/*    -webkit-appearance: none;*/
-/*    height: 20px;*/
-/*    width: 20px;*/
-/*    margin-top: -1px;*/
-/*    background: #ffffff;*/
-/*    border-radius: 50%;*/
-/*    box-shadow: 0 0 8px #00CCFF;*/
-/*    position: relative;*/
-/*    z-index: 999;*/
-/*}*/
+#range-wrap input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 20px;
+    width: 20px;
+    margin-top: -1px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #00CCFF;
+    position: relative;
+    z-index: 999;
+}
 
-@media (max-width: 768px) {
+
+/*媒体查询兼容手机端样式*/
+/*在视口宽度小于等于768像素时*/
+@media screen and (max-width: 768px) {
     .tools {
         bottom: auto;
         top: 20px;
@@ -142,44 +155,24 @@ body {
     .tools button {
         width: 35px;
         height: 35px;
-        line-height: 35px;
         margin-bottom: 15px;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
     }
 
-    .tools button.active, .tools button:active {
-        box-shadow: 0 0 5px #00ccff;
-    }
-
-    /*.tools button{*/
-    /*    font-size: 18px;*/
-    /*}*/
-
-    .tools #swatches {
-        display: none;
-    }
-
     .color-group {
-        left: 0;
+        bottom: 10px;
         top: auto;
-        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%) translateY(0px);
+        width: 80%;
+    }
+
+    .color-group ul {
         display: flex;
-        width: 100%;
-        justify-content: center;
-        text-align: center;
-        transform: translate(0, 0)
+        justify-content: space-around;
     }
 
-    .color-group ul li{
-        display: inline-block;
-        margin: 0 5px;
-    }
-
-    .color-group ul li.active{
-        box-shadow: 0 0 10px #00ccff;
-    }
-
-    #range-wrap{
+    #range-wrap {
         right: auto;
         left: 20px;
     }
